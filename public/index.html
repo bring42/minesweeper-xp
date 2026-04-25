@@ -210,12 +210,17 @@
         bios:    { url: '/seabios.bin' },
         vga_bios: { url: '/vgabios.bin' },
         hda: {
-          url:   '/disk.img',
+          url:   '/disk.img',   // SW intercepts: returns zeros (stub) or chunks
           async: true,
           size:  meta.totalSize,
         },
+        // Restore pre-booted Windows 98 state from copy.sh CDN (CORS-open, ~13 MB).
+        // The state's disk-sector cache covers everything minesweeper needs,
+        // so the disk stub is almost never hit.
+        initial_state: {
+          url: 'https://i.copy.sh/windows98_state-v2.bin.zst',
+        },
         autostart: true,
-        // No network needed
         disable_mouse:    false,
         disable_keyboard: false,
       });

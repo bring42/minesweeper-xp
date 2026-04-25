@@ -22,37 +22,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── v86 binaries ───────────────────────────────────────────────────────
-      - name: Download v86 emulator + BIOS files
+      # ── v86 binaries + stub meta.json ──────────────────────────────────────
+      # Downloads v86.js, v86.wasm, seabios.bin, vgabios.bin from copy.sh
+      # and writes public/chunks/meta.json (stub disk mode — no real disk image).
+      # The Windows 98 state is loaded at runtime from i.copy.sh (~13 MB, CORS-open).
+      - name: Prepare v86 assets
         run: bash scripts/prepare.sh
 
-      # ── Disk image ─────────────────────────────────────────────────────────
-      # The disk image is stored as a GitHub Release asset so it stays out of
-      # Git history. Upload it once with:
-      #   gh release create v1.0 disk.img --title "Disk image v1"
-      # then set DISK_RELEASE_TAG=v1.0 in your repo Actions variables (or
-      # leave it as "latest" to always fetch the most recent release).
-      - name: Download disk image from GitHub Releases
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${DISK_RELEASE_TAG:-latest}"
-          echo "==> Downloading disk.img from release: $TAG"
-          if [[ "$TAG" == "latest" ]]; then
-            gh release download --repo "$GITHUB_REPOSITORY" \
-              --pattern "disk.img" --dir /tmp/diskimg/
-          else
-            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern "disk.img" --dir /tmp/diskimg/
-          fi
-          ls -lh /tmp/diskimg/
-
-      # ── Chunk disk image ───────────────────────────────────────────────────
-      - name: Chunk disk image for Cloudflare Pages
-        run: |
-          python3 scripts/chunk.py /tmp/diskimg/disk.img
-          echo "--- chunks ---"
-          ls -lh public/chunks/
+      # ── Optional: use a real disk image instead of stub ────────────────────
+      # Uncomment this step if you have a disk.img uploaded as a GitHub Release:
+      #
+      # - name: Download disk image from GitHub Releases
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     gh release download latest --repo "$GITHUB_REPOSITORY" \
+      #       --pattern "disk.img" --dir /tmp/diskimg/
+      #     python3 scripts/chunk.py /tmp/diskimg/disk.img
 
       # ── Deploy ─────────────────────────────────────────────────────────────
       - name: Deploy to Cloudflare Pages

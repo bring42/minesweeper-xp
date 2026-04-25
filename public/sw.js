@@ -1,16 +1,19 @@
 /**
  * sw.js — Service Worker
  *
- * Intercepts GET requests for /disk.img and transparently reassembles
- * the response from numbered chunk files stored under /chunks/.
+ * Two modes:
  *
- * This lets us store a large disk image as many small files
- * (each < 25 MiB) on Cloudflare Pages while still serving the image
- * as a single URL that supports HTTP Range requests, which v86 requires
- * when `async: true` is set.
+ * 1. STUB mode (default): /chunks/meta.json has { totalSize, stub: true }
+ *    Intercepts GET /disk.img Range requests and returns zero-filled bytes.
+ *    v86 restores from a pre-saved state file (windows98_state-v2.bin.zst)
+ *    whose sector cache covers everything minesweeper needs, so the disk
+ *    is rarely hit; any cache miss returns zeros which Windows handles
+ *    gracefully for unimportant sectors.
  *
- * Chunk files on disk:  /chunks/disk.img.0000, .0001, …
- * Metadata:             /chunks/meta.json  →  { totalSize, chunkSize, count }
+ * 2. CHUNK mode: /chunks/meta.json has { totalSize, chunkSize, count }
+ *    Reassembles the disk image from numbered chunk files stored under
+ *    /chunks/ (each chunk < 25 MiB, compatible with Cloudflare Pages).
+ *    Used when you have your own disk image and want to self-host it.
  */
 
 const CACHE = 'minesweeper-chunks-v1';
@@ -63,31 +66,30 @@ async function fetchChunk(index) {
 
 async function handleDiskRequest(request) {
   const meta = await getMeta();
-  const { totalSize, chunkSize } = meta;
+  const { totalSize } = meta;
 
   const rangeHeader = request.headers.get('Range');
 
   if (!rangeHeader) {
-    // v86 may probe the size with a bare HEAD/GET before enabling async mode.
-    // Return an empty 200 with the correct Content-Length so it can infer size.
+    // v86 probes size with a bare HEAD/GET before enabling async mode.
     return new Response(new ArrayBuffer(0), {
       status: 200,
       headers: {
-        'Content-Length':  String(totalSize),
-        'Content-Type':    'application/octet-stream',
-        'Accept-Ranges':   'bytes',
+        'Content-Length': String(totalSize),
+        'Content-Type':   'application/octet-stream',
+        'Accept-Ranges':  'bytes',
       },
     });
   }
 
   // Parse: "bytes=<start>-[<end>]"
   const m = rangeHeader.match(/^bytes=(\d+)-(\d*)$/);
-  if (!m) {
-    return new Response('Bad Range header', { status: 416 });
-  }
+  if (!m) return new Response('Bad Range header', { status: 416 });
 
-  const start = parseInt(m[1], 10);
-  const end   = m[2] ? parseInt(m[2], 10) : totalSize - 1;
+  const start      = parseInt(m[1], 10);
+  const end        = m[2] ? parseInt(m[2], 10) : totalSize - 1;
+  const clampedEnd = Math.min(end, totalSize - 1);
+  const length     = clampedEnd - start + 1;
 
   if (start >= totalSize) {
     return new Response(null, {
@@ -96,30 +98,32 @@ async function handleDiskRequest(request) {
     });
   }
 
-  const clampedEnd = Math.min(end, totalSize - 1);
-  const length     = clampedEnd - start + 1;
+  let slice;
 
-  // Which chunks overlap [start, clampedEnd]?
-  const firstIdx = Math.floor(start / chunkSize);
-  const lastIdx  = Math.floor(clampedEnd / chunkSize);
+  if (meta.stub) {
+    // ── Stub mode: return zeros for any range ─────────────────────────────
+    slice = new Uint8Array(length); // zero-filled by default
+  } else {
+    // ── Chunk mode: reassemble from stored chunks ─────────────────────────
+    const { chunkSize } = meta;
+    const firstIdx  = Math.floor(start / chunkSize);
+    const lastIdx   = Math.floor(clampedEnd / chunkSize);
 
-  // Fetch all required chunks in parallel
-  const buffers = await Promise.all(
-    Array.from({ length: lastIdx - firstIdx + 1 }, (_, i) => fetchChunk(firstIdx + i))
-  );
+    const buffers = await Promise.all(
+      Array.from({ length: lastIdx - firstIdx + 1 }, (_, i) => fetchChunk(firstIdx + i))
+    );
 
-  // Concatenate
-  const totalBytes = buffers.reduce((s, b) => s + b.byteLength, 0);
-  const combined   = new Uint8Array(totalBytes);
-  let offset       = 0;
-  for (const buf of buffers) {
-    combined.set(new Uint8Array(buf), offset);
-    offset += buf.byteLength;
+    const totalBytes = buffers.reduce((s, b) => s + b.byteLength, 0);
+    const combined   = new Uint8Array(totalBytes);
+    let offset       = 0;
+    for (const buf of buffers) {
+      combined.set(new Uint8Array(buf), offset);
+      offset += buf.byteLength;
+    }
+
+    const sliceStart = start - firstIdx * chunkSize;
+    slice = combined.slice(sliceStart, sliceStart + length);
   }
-
-  // Slice to the exact requested byte range
-  const sliceStart = start - firstIdx * chunkSize;
-  const slice      = combined.slice(sliceStart, sliceStart + length);
 
   return new Response(slice, {
     status: 206,
