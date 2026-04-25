@@ -22,23 +22,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── v86 binaries + stub meta.json ──────────────────────────────────────
-      # Downloads v86.js, v86.wasm, seabios.bin, vgabios.bin from copy.sh
-      # and writes public/chunks/meta.json (stub disk mode — no real disk image).
-      # The Windows 98 state is loaded at runtime from i.copy.sh (~13 MB, CORS-open).
-      - name: Prepare v86 assets
+      # ── Boxedwine assets + winmine.zip ────────────────────────────────────
+      # Downloads Boxedwine 26R1 web release, extracts runtime files,
+      # chunks boxedwine.zip (37 MB) into 20 MB pieces for CF Pages,
+      # and bundles winmine.exe into winmine.zip.
+      - name: Prepare Boxedwine assets
         run: bash scripts/prepare.sh
-
-      # ── Optional: use a real disk image instead of stub ────────────────────
-      # Uncomment this step if you have a disk.img uploaded as a GitHub Release:
-      #
-      # - name: Download disk image from GitHub Releases
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     gh release download latest --repo "$GITHUB_REPOSITORY" \
-      #       --pattern "disk.img" --dir /tmp/diskimg/
-      #     python3 scripts/chunk.py /tmp/diskimg/disk.img
 
       # ── Deploy ─────────────────────────────────────────────────────────────
       - name: Deploy to Cloudflare Pages
