@@ -13,7 +13,9 @@ set -euo pipefail
 DEST="$(cd "$(dirname "$0")/.." && pwd)/public"
 mkdir -p "$DEST" "$DEST/chunks"
 
-V86_BASE="https://copy.sh/v86"
+# Official v86 release assets (libv86.js is the embeddable build)
+V86_RELEASE="https://github.com/copy/v86/releases/download/latest"
+V86_BIOS="https://github.com/copy/v86/raw/master/bios"
 
 # Windows 98 virtual disk size (must match what v86 expects for the state)
 WIN98_DISK_SIZE=314572800
@@ -25,16 +27,16 @@ download() {
     return
   fi
   echo "  Downloading $(basename "$out") …"
-  curl -fsSL --retry 3 "$url" -o "$out"
+  curl -fsSL --retry 3 -L "$url" -o "$out"
 }
 
-echo "==> Downloading v86 emulator"
-download "${V86_BASE}/build/v86_all.js" "$DEST/v86_all.js"
-download "${V86_BASE}/build/v86.wasm" "$DEST/v86.wasm"
+echo "==> Downloading v86 emulator (from GitHub releases)"
+download "${V86_RELEASE}/libv86.js"  "$DEST/libv86.js"
+download "${V86_RELEASE}/v86.wasm"   "$DEST/v86.wasm"
 
 echo "==> Downloading BIOS files"
-download "${V86_BASE}/bios/seabios.bin" "$DEST/seabios.bin"
-download "${V86_BASE}/bios/vgabios.bin" "$DEST/vgabios.bin"
+download "${V86_BIOS}/seabios.bin" "$DEST/seabios.bin"
+download "${V86_BIOS}/vgabios.bin" "$DEST/vgabios.bin"
 
 echo "==> Writing stub disk metadata (no real disk image needed)"
 cat > "$DEST/chunks/meta.json" <<JSON
@@ -48,7 +50,7 @@ echo "  Written: $DEST/chunks/meta.json"
 
 echo ""
 echo "Done! Files in $DEST:"
-ls -lh "$DEST/v86_all.js" "$DEST/v86.wasm" "$DEST/seabios.bin" "$DEST/vgabios.bin"
+ls -lh "$DEST/libv86.js" "$DEST/v86.wasm" "$DEST/seabios.bin" "$DEST/vgabios.bin"
 echo ""
 echo "Stub meta.json written — no disk image build required."
 echo "The Windows 98 state is loaded from https://i.copy.sh/ at runtime."

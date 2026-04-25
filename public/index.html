@@ -198,7 +198,7 @@
 
       // v86 is loaded via the next <script> tag; wait for it
       if (typeof V86 === 'undefined') {
-        showError('v86_all.js not found. Run scripts/prepare.sh first.');
+        showError('libv86.js not found. Run scripts/prepare.sh first.');
         return;
       }
 
@@ -260,7 +260,7 @@
   </script>
 
   <!-- v86 emulator (downloaded by scripts/prepare.sh) -->
-  <script src="/v86_all.js" onload="boot()" onerror="showError('v86_all.js failed to load. Run scripts/prepare.sh first.')"></script>
+  <script src="/libv86.js" onload="boot()" onerror="showError('libv86.js failed to load. Run scripts/prepare.sh first.')"></script>
 
 </body>
 </html>
