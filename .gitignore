@@ -6,7 +6,7 @@ disk.img
 autorun.img
 
 # v86 files are downloaded by scripts/prepare.sh
-public/v86.js
+public/v86_all.js
 public/v86.wasm
 public/seabios.bin
 public/vgabios.bin

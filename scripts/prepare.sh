@@ -29,7 +29,7 @@ download() {
 }
 
 echo "==> Downloading v86 emulator"
-download "${V86_BASE}/build/v86.js"   "$DEST/v86.js"
+download "${V86_BASE}/build/v86_all.js" "$DEST/v86_all.js"
 download "${V86_BASE}/build/v86.wasm" "$DEST/v86.wasm"
 
 echo "==> Downloading BIOS files"
@@ -48,7 +48,7 @@ echo "  Written: $DEST/chunks/meta.json"
 
 echo ""
 echo "Done! Files in $DEST:"
-ls -lh "$DEST/v86.js" "$DEST/v86.wasm" "$DEST/seabios.bin" "$DEST/vgabios.bin"
+ls -lh "$DEST/v86_all.js" "$DEST/v86.wasm" "$DEST/seabios.bin" "$DEST/vgabios.bin"
 echo ""
 echo "Stub meta.json written — no disk image build required."
 echo "The Windows 98 state is loaded from https://i.copy.sh/ at runtime."
