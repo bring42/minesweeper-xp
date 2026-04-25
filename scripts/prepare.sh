@@ -79,8 +79,10 @@ print(f"    total: {total / 1024 / 1024:.1f} MB in {count} chunks → meta.json 
 PYEOF
 
 # ── Bundle winmine.exe as an app zip ─────────────────────────────────────
+# winmine.exe is stored inside minesweeper.zip in the repo; extract it first.
 echo "==> Creating winmine.zip…"
-(cd "$ASSET_DIR" && zip -j "$DEST/winmine.zip" "winmine.exe")
+unzip -p "$ASSET_DIR/minesweeper.zip" winmine.exe > "$TMP_DIR/winmine.exe"
+(cd "$TMP_DIR" && zip -j "$DEST/winmine.zip" "winmine.exe")
 echo "    $(ls -sh "$DEST/winmine.zip" | awk '{print $1}')  winmine.zip"
 
 # ── Cleanup ───────────────────────────────────────────────────────────────
