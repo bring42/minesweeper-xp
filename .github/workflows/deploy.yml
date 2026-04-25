@@ -1,0 +1,65 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      # ── Checkout ───────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── v86 binaries ───────────────────────────────────────────────────────
+      - name: Download v86 emulator + BIOS files
+        run: bash scripts/prepare.sh
+
+      # ── Disk image ─────────────────────────────────────────────────────────
+      # The disk image is stored as a GitHub Release asset so it stays out of
+      # Git history. Upload it once with:
+      #   gh release create v1.0 disk.img --title "Disk image v1"
+      # then set DISK_RELEASE_TAG=v1.0 in your repo Actions variables (or
+      # leave it as "latest" to always fetch the most recent release).
+      - name: Download disk image from GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${DISK_RELEASE_TAG:-latest}"
+          echo "==> Downloading disk.img from release: $TAG"
+          if [[ "$TAG" == "latest" ]]; then
+            gh release download --repo "$GITHUB_REPOSITORY" \
+              --pattern "disk.img" --dir /tmp/diskimg/
+          else
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --pattern "disk.img" --dir /tmp/diskimg/
+          fi
+          ls -lh /tmp/diskimg/
+
+      # ── Chunk disk image ───────────────────────────────────────────────────
+      - name: Chunk disk image for Cloudflare Pages
+        run: |
+          python3 scripts/chunk.py /tmp/diskimg/disk.img
+          echo "--- chunks ---"
+          ls -lh public/chunks/
+
+      # ── Deploy ─────────────────────────────────────────────────────────────
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: minesweeper-xp
+          directory: public
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

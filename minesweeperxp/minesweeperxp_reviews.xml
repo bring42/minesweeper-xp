@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<reviews itemIdentifier="minesweeperxp">
+  <review>
+    <reviewtitle>Works</reviewtitle>
+    <reviewbody>It works!</reviewbody>
+    <stars>5</stars>
+    <reviewer>Icelandic88</reviewer>
+    <reviewdate>2024-09-01 00:43:27</reviewdate>
+    <createdate>2024-09-01 00:43:27</createdate>
+    <reviewer_itemname>@icelandic88</reviewer_itemname>
+  </review>
+  <review>
+    <reviewtitle>It Works!!!</reviewtitle>
+    <reviewbody>It works and i love it so much!!!!!</reviewbody>
+    <stars>5</stars>
+    <reviewer>Trang Vo747</reviewer>
+    <reviewdate>2025-01-26 15:35:31</reviewdate>
+    <createdate>2025-01-26 15:35:31</createdate>
+    <reviewer_itemname>@trang_vo747</reviewer_itemname>
+  </review>
+  <review>
+    <reviewtitle>It works!</reviewtitle>
+    <reviewbody>I tried this on Windows 11, and it worked!</reviewbody>
+    <stars>5</stars>
+    <reviewer>Ianis Marian</reviewer>
+    <reviewdate>2025-07-28 17:59:10</reviewdate>
+    <createdate>2025-07-28 17:59:10</createdate>
+    <reviewer_itemname>@ianis_marian</reviewer_itemname>
+  </review>
+  <review>
+    <reviewtitle>yeah</reviewtitle>
+    <reviewbody>Works as intended (w10) without needing to turn on compatibility mode.
+The file comes with a few images, and a zip archive where the program itself, which is 79 kb, is stored and runs straight from there.</reviewbody>
+    <stars>5</stars>
+    <reviewer>Lacking_Wireless_Card</reviewer>
+    <reviewdate>2025-08-20 22:33:28</reviewdate>
+    <createdate>2025-08-20 22:33:28</createdate>
+    <reviewer_itemname>@lacking_wireless_card</reviewer_itemname>
+  </review>
+  <review>
+    <reviewtitle>Malware.</reviewtitle>
+    <reviewbody>Could be a faulty scan, but, VirusTotal said it has malware in it. Always check what you're downloading with VirusTotal.
+In other words, I don't trust this.</reviewbody>
+    <stars>1</stars>
+    <reviewer>model rotteи</reviewer>
+    <reviewdate>2025-10-08 02:20:06</reviewdate>
+    <createdate>2025-10-08 02:20:06</createdate>
+    <reviewer_itemname>@model_rotte_</reviewer_itemname>
+  </review>
+  <info>
+    <num_reviews>5</num_reviews>
+    <avg_rating>4.20</avg_rating>
+  </info>
+</reviews>

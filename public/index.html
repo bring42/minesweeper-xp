@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Minesweeper XP</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #3a6ea5;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Tahoma, 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+
+    /* ── Loading screen ─────────────────────────────────────────── */
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+      padding: 32px;
+    }
+
+    .xp-logo {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #e8540c 0%, #ffb900 40%, #00b04f 60%, #0078d7 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 24px rgba(255,255,255,0.3);
+    }
+
+    #loading h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    #loading p {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .progress-wrap {
+      width: 300px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 22px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 11px;
+      border: 1px solid rgba(255,255,255,0.2);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #1e90ff, #00c8ff);
+      border-radius: 11px;
+      transition: width 0.4s ease;
+    }
+
+    #status {
+      margin-top: 8px;
+      font-size: 12px;
+      opacity: 0.7;
+      min-height: 18px;
+    }
+
+    /* ── Error state ─────────────────────────────────────────────── */
+    #error-box {
+      display: none;
+      background: rgba(200,0,0,0.3);
+      border: 1px solid rgba(255,100,100,0.5);
+      border-radius: 8px;
+      padding: 16px 24px;
+      max-width: 420px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    #error-box strong { display: block; margin-bottom: 6px; font-size: 15px; }
+
+    /* ── Emulator screen ─────────────────────────────────────────── */
+    #screen-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #screen-wrap small {
+      font-size: 11px;
+      opacity: 0.5;
+    }
+
+    #screen {
+      border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      cursor: default;
+    }
+
+    #screen canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="xp-logo"></div>
+    <h1>Minesweeper XP</h1>
+    <div class="progress-wrap">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <p id="status">Initialising…</p>
+    </div>
+    <div id="error-box">
+      <strong>Something went wrong</strong>
+      <span id="error-msg"></span>
+    </div>
+  </div>
+
+  <!-- Emulator -->
+  <div id="screen-wrap">
+    <div id="screen"></div>
+    <small>Click to focus · ← → ↑ ↓ to scroll · F11 for fullscreen</small>
+  </div>
+
+  <script>
+    // ── Helpers ────────────────────────────────────────────────────
+    const progressFill = document.getElementById('progress-fill');
+    const statusEl     = document.getElementById('status');
+    const loadingEl    = document.getElementById('loading');
+    const screenWrap   = document.getElementById('screen-wrap');
+    const errorBox     = document.getElementById('error-box');
+    const errorMsg     = document.getElementById('error-msg');
+
+    function setProgress(pct, text) {
+      progressFill.style.width = Math.min(100, pct) + '%';
+      statusEl.textContent = text;
+    }
+
+    function showError(msg) {
+      errorBox.style.display = 'block';
+      errorMsg.textContent = msg;
+      setProgress(0, 'Error');
+    }
+
+    function showEmulator() {
+      loadingEl.style.display = 'none';
+      screenWrap.style.display = 'flex';
+    }
+
+    // ── Service Worker registration ────────────────────────────────
+    async function registerSW() {
+      if (!('serviceWorker' in navigator)) return;
+      try {
+        await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
+      } catch (e) {
+        console.warn('SW registration failed, continuing without chunk proxy:', e);
+      }
+    }
+
+    // ── Boot ───────────────────────────────────────────────────────
+    async function boot() {
+      setProgress(5, 'Registering service worker…');
+      await registerSW();
+
+      setProgress(15, 'Fetching disk metadata…');
+      let meta;
+      try {
+        const r = await fetch('/chunks/meta.json');
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        meta = await r.json();
+      } catch (e) {
+        showError('Could not load disk metadata (/chunks/meta.json). Has the build script been run? See README.');
+        return;
+      }
+
+      setProgress(25, 'Starting emulator…');
+
+      // v86 is loaded via the next <script> tag; wait for it
+      if (typeof V86 === 'undefined') {
+        showError('v86.js not found. Run scripts/prepare.sh first.');
+        return;
+      }
+
+      const emulator = new V86({
+        wasm_path:       '/v86.wasm',
+        memory_size:     64 * 1024 * 1024,
+        vga_memory_size:  8 * 1024 * 1024,
+        screen_container: document.getElementById('screen'),
+        bios:    { url: '/seabios.bin' },
+        vga_bios: { url: '/vgabios.bin' },
+        hda: {
+          url:   '/disk.img',
+          async: true,
+          size:  meta.totalSize,
+        },
+        autostart: true,
+        // No network needed
+        disable_mouse:    false,
+        disable_keyboard: false,
+      });
+
+      emulator.add_listener('download-progress', info => {
+        if (info.total) {
+          const pct = 25 + Math.round((info.loaded / info.total) * 40);
+          const mb  = (info.loaded / 1024 / 1024).toFixed(1);
+          setProgress(pct, `Downloading… ${mb} MB`);
+        }
+      });
+
+      emulator.add_listener('emulator-ready', () => {
+        setProgress(70, 'Starting Windows…');
+      });
+
+      // Show screen on first VGA mode set (Windows started drawing)
+      let shown = false;
+      emulator.add_listener('screen-set-mode', () => {
+        if (shown) return;
+        setProgress(90, 'Almost there…');
+      });
+
+      // Fallback: show emulator after 30 s regardless
+      setTimeout(() => {
+        if (!shown) { shown = true; showEmulator(); }
+      }, 30000);
+
+      // Show as soon as the screen has something to display
+      emulator.add_listener('screen-put-image-data', () => {
+        if (shown) return;
+        shown = true;
+        setProgress(100, 'Ready!');
+        setTimeout(showEmulator, 800);
+      });
+    }
+  </script>
+
+  <!-- v86 emulator (downloaded by scripts/prepare.sh) -->
+  <script src="/v86.js" onload="boot()" onerror="showError('v86.js failed to load. Run scripts/prepare.sh first.')"></script>
+
+</body>
+</html>

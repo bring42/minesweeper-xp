@@ -1,0 +1,29 @@
+# Cloudflare Pages response headers
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# WASM must be served as application/wasm for browser to compile it
+/v86.wasm
+  Content-Type: application/wasm
+  Cache-Control: public, max-age=31536000, immutable
+
+# Disk chunks are immutable — cache them forever in both CDN and browser
+/chunks/*
+  Content-Type: application/octet-stream
+  Cache-Control: public, max-age=31536000, immutable
+
+# BIOS blobs
+/seabios.bin
+  Content-Type: application/octet-stream
+  Cache-Control: public, max-age=31536000, immutable
+
+/vgabios.bin
+  Content-Type: application/octet-stream
+  Cache-Control: public, max-age=31536000, immutable
+
+# Service worker must not be cached long — it needs to update
+/sw.js
+  Cache-Control: no-cache
+
+# Default HTML
+/index.html
+  Cache-Control: no-cache

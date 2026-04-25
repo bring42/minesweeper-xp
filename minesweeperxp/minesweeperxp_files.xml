@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files>
+  <file name="__ia_thumb.jpg" source="original">
+    <mtime>1625249850</mtime>
+    <size>20201</size>
+    <md5>9ef53beee52a0e1083fb00e3e9a59adb</md5>
+    <crc32>afc4bd3c</crc32>
+    <sha1>641a4565b9f1025e2e42aab63e066bf27c52968b</sha1>
+    <format>Item Tile</format>
+    <rotation>0</rotation>
+  </file>
+  <file name="minesweeper.png" source="original">
+    <mtime>1625249065</mtime>
+    <size>1926</size>
+    <md5>8cb6d507c29c55586b98403f97f632d8</md5>
+    <crc32>b7c1cb9c</crc32>
+    <sha1>5c629e7f42e993ace66bbca983de3dc89b9ca81e</sha1>
+    <format>PNG</format>
+  </file>
+  <file name="minesweeper.zip" source="original">
+    <mtime>1625249016</mtime>
+    <size>80468</size>
+    <md5>4d8224ce6a782bcdff7c404a8c4f4a22</md5>
+    <crc32>897eba10</crc32>
+    <sha1>71124658fbde3ad3868e27da6b68011806a77517</sha1>
+    <format>ZIP</format>
+    <filecount>1</filecount>
+  </file>
+  <file name="minesweeper_thumb.jpg" source="derivative">
+    <format>JPEG Thumb</format>
+    <original>minesweeper.png</original>
+    <mtime>1625249778</mtime>
+    <size>9609</size>
+    <md5>1cebe6241e65d456291895df77811733</md5>
+    <crc32>997675be</crc32>
+    <sha1>7e7bdf4690a150cca0bf2ee046fed3e678147072</sha1>
+  </file>
+  <file name="minesweeperxp_archive.torrent" source="metadata">
+    <btih>632747f5dab36404005d1821713639a12b2becb4</btih>
+    <mtime>1759890011</mtime>
+    <size>2168</size>
+    <md5>8dea70b83ba86dcf98c9db786721e1bf</md5>
+    <crc32>0c66e06c</crc32>
+    <sha1>35b0c81efda7b8b79f939316463e0afc174a7067</sha1>
+    <format>Archive BitTorrent</format>
+  </file>
+  <file name="minesweeperxp_files.xml" source="original">
+    <format>Metadata</format>
+    <md5>eb0a711756d0d1945f2dadd018e862c2</md5>
+    <summation>md5</summation>
+  </file>
+  <file name="minesweeperxp_meta.sqlite" source="original">
+    <mtime>1625249111</mtime>
+    <size>28672</size>
+    <md5>a016ec78e33d06a7b10f5b2794ba8ced</md5>
+    <crc32>dd4263f5</crc32>
+    <sha1>a32cf4c6b8cf8ee1b22a726fa9f60f991a5ebc6e</sha1>
+    <format>Metadata</format>
+  </file>
+  <file name="minesweeperxp_meta.xml" source="original">
+    <mtime>1625249756</mtime>
+    <size>1436</size>
+    <md5>476ba9d7d82a54fe5aecc8072ba4662f</md5>
+    <crc32>e3a4db6e</crc32>
+    <sha1>8060a4202539d86073a1d6810577f2f0809d4ca2</sha1>
+    <format>Metadata</format>
+  </file>
+  <file name="minesweeperxp_reviews.xml" source="original">
+    <mtime>1759890010</mtime>
+    <size>2170</size>
+    <md5>5ffd4ed3f225e4f6ca10e78d859ff56d</md5>
+    <crc32>d65b4df4</crc32>
+    <sha1>00d37462c1d21ab026e33b746301a51137dbacc8</sha1>
+    <format>Metadata</format>
+  </file>
+</files>
